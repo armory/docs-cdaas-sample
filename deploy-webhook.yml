@@ -155,7 +155,7 @@ webhooks:
     networkMode: direct
     headers:
       - key: Authorization
-        value: token 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 #{{secrets.github_token}} #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
+        value: token  #{{secrets.github_token}} 
       - key: Content-Type
         value: application/json
     bodyTemplate:
@@ -173,7 +173,7 @@ webhooks:
     networkMode: direct
     headers:
       - key: Authorization
-        value: token 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 #{{secrets.person_github_token}} #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
+        value: token  #{{secrets.person_github_token}} 
       - key: Content-Type
         value: application/json
     bodyTemplate:
