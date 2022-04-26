@@ -9,7 +9,7 @@ targets:
     # the name of an agent configured account
     account: demo-dev-cluster #sa-eks-direct #saClusterViaHelm
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-dev
+    namespace: demo-dev
     # This is the key to a strategy under the strategies map
     strategy: rolling
   staging:
@@ -23,25 +23,15 @@ targets:
     constraints:
       dependsOn: ["dev"]
       beforeDeployment: []
-  infosec:
-    # the name of an agent configured account
-    account: demo-staging-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: borealis-infosec
-    # This is the key to a strategy under the strategies map
-    strategy: rolling
-    constraints:
-      dependsOn: ["dev"]
-      beforeDeployment: []
   prod-west:
     # the name of an agent configured account
     account: demo-prod-west-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-prod
+    namespace: demo-prod
     # This is the key to a strategy under the strategies map
     strategy: mycanary
     constraints:
-      dependsOn: ["infosec","staging"]
+      dependsOn: ["staging"]
       beforeDeployment:
       - pause:
           untilApproved: true
@@ -49,11 +39,11 @@ targets:
     # the name of an agent configured account
     account: demo-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-prod-eu
+    namespace: demo-prod-eu
     # This is the key to a strategy under the strategies map
     strategy: myBlueGreen
     constraints:
-      dependsOn: [ "infosec","staging" ]
+      dependsOn: ["staging"]
       beforeDeployment:
         - pause:
             untilApproved: true
@@ -119,7 +109,7 @@ strategies:
             untilApproved: true
 
 analysis:
-  defaultMetricProviderName: Stephen-Prometheus
+  defaultMetricProviderName: Demo-Prometheus
   queries:
     - name: avgCPUUsage-pass
       upperLimit: 10000 #3
