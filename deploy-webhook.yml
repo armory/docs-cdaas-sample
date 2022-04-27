@@ -151,7 +151,7 @@ analysis:
 webhooks:
   - name: myWebhook
     method: POST
-    uriTemplate: https://api.github.com/repos/aimeeu/borealis-demo/dispatches
+    uriTemplate: https://api.github.com/repos/armory/docs-cdaas-demo/dispatches
     networkMode: direct
     headers:
       - key: Authorization
@@ -169,7 +169,7 @@ webhooks:
     retryCount: 3
   - name: myWebhookwcontext
     method: POST
-    uriTemplate: https://api.github.com/repos/aimeeu/borealis-demo/dispatches
+    uriTemplate: https://api.github.com/repos/armory/docs-cdaas-demo/dispatches
     networkMode: direct
     headers:
       - key: Authorization

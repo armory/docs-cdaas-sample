@@ -1,107 +1,95 @@
+---
 version: v1
 kind: kubernetes
-application: potato-facts3
-# Map of Deployment Targets, this is set up in a way where 
+application: potato-facts
+# Map of Deployment Targets, this is set up in a way where
 # we can do multi-target deployments (multi-region or multi-cluster)
 targets:
-  # This in the name of a deployment, underneath it are its configuration
+  # This in the name of a deployment. Underneath it is its configuration.
   dev:
     # the name of an agent configured account
-    account: demo-dev-cluster #sa-eks-direct #saClusterViaHelm
+    account: demo-rna-dev-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-dev
+    namespace: demo-dev
     # This is the key to a strategy under the strategies map
     strategy: rolling
   staging:
     # the name of an agent configured account
-    account: demo-staging-cluster
+    account: demo-rna-staging-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-staging
-    # This is the key to a strategy under the strategies map
-    strategy: rolling
-    # This is a list of manifest names that should be included in this deployment
-    constraints:
-      dependsOn: ["dev"]
-      beforeDeployment: []
-  infosec:
-    # the name of an agent configured account
-    account: demo-staging-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: borealis-infosec
+    namespace: demo-staging
     # This is the key to a strategy under the strategies map
     strategy: rolling
     constraints:
       dependsOn: ["dev"]
       beforeDeployment: []
-  prod-west:
+  prod-us:
     # the name of an agent configured account
-    account: demo-prod-west-cluster
+    account: demo-rna-prod-us-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-prod
+    namespace: demo-prod-us
     # This is the key to a strategy under the strategies map
     strategy: mycanary
     constraints:
-      dependsOn: ["infosec","staging"]
+      dependsOn: ["staging"]
       beforeDeployment:
-      - pause:
-          untilApproved: true
+        - pause:
+            untilApproved: true
   prod-eu:
     # the name of an agent configured account
-    account: demo-prod-eu-cluster
+    account: demo-rna-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-prod-eu
+    namespace: demo-prod-eu
     # This is the key to a strategy under the strategies map
     strategy: myBlueGreen
     constraints:
-      dependsOn: [ "infosec","staging" ]
+      dependsOn: ["staging"]
       beforeDeployment:
         - pause:
             untilApproved: true
 # The list of manifests sources
 manifests:
-  # This will read all yaml|yml files in a dir and deploy all manifests in that directory to all targets.
+  # This reads all YAML files in a dir
+  # and deploys manifests in that dir to all targets.
   - path: manifests/potato-facts.yml
   - path: manifests/potato-facts-external-service.yml
-    targets: [prod-west, prod-eu]
+    targets: [prod-us, prod-eu]
 # The map of strategies, a deployment target will reference one of these
 strategies:
-  # this is the name for the strategy
+  # This is the name for the strategy
   mycanary:
-    # This map key, is the deployment strategy type
-    canary: 
-        # List of canary steps
-        steps:
-          # The map key is the step type
-          - setWeight:
-              weight: 25
-          - analysis:
-              interval: 7
-              units: seconds
-              numberOfJudgmentRuns: 1
-              rollBackMode: manual
-              rollForwardMode: automatic
-              queries:
+    # This map key is the deployment strategy type
+    canary:
+      steps:
+        # The map key is the step type
+        - setWeight:
+            weight: 25
+        - analysis:
+            interval: 7
+            units: seconds
+            numberOfJudgmentRuns: 1
+            rollBackMode: manual
+            rollForwardMode: automatic
+            queries:
               - avgCPUUsage-pass
-          #- pause:
-          #    untilApproved: true
-          - setWeight:
-              weight: 50
-          - analysis:
-              interval: 7
-              units: seconds
-              numberOfJudgmentRuns: 3
-              rollBackMode: manual
-              rollForwardMode: manual
-              queries: 
+        - setWeight:
+            weight: 50
+        - analysis:
+            interval: 7
+            units: seconds
+            numberOfJudgmentRuns: 3
+            rollBackMode: manual
+            rollForwardMode: manual
+            queries:
               - avgCPUUsage-fail
               - avgCPUUsage-pass
-          - setWeight:
-              weight: 100
+        - setWeight:
+            weight: 100
   rolling:
     canary:
-      steps: 
-      - setWeight:
-          weight: 100
+      steps:
+        - setWeight:
+            weight: 100
   myBlueGreen:
     blueGreen:
       activeService: potato-facts-external
@@ -117,25 +105,18 @@ strategies:
       shutDownOldVersionAfter:
         - pause:
             untilApproved: true
-
 analysis:
-  defaultMetricProviderName: Stephen-Prometheus
+  defaultMetricProviderName: Demo-Prometheus
   queries:
     - name: avgCPUUsage-pass
-      upperLimit: 10000 #3
+      upperLimit: 10000
       lowerLimit: 0
       queryTemplate: >-
         avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
         sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
         by (annotation_app, pod)) by (annotation_app)
-      #,annotation_deploy_armory_io_replica_set_name="${canaryReplicaSetName}"})
-      #${ARMORY_REPLICA_SET_NAME}
-      #,annotation_deploy_armory_io_replica_set_name="${ARMORY_REPLICA_SET_NAME}"
-      #${replicaSetName}
-      #${applicationName}
-      # note the time should actually be set to ${promQlStepInterval}
     - name: invalidQuery
-      upperLimit: 10000 #3
+      upperLimit: 10000
       lowerLimit: 0
       queryTemplate: >-
         avg (avg_over_time(c
@@ -146,6 +127,3 @@ analysis:
         avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
         sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
         by (annotation_app, pod)) by (annotation_app)
-
-
-# armory deploy start -f deploy.yml
