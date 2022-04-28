@@ -1,4 +1,4 @@
-name: Webhook Callback
+name: Basic Ping Webhook Callback
 
 on:
   repository_dispatch:
