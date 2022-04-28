@@ -1,140 +1,126 @@
+---
 version: v1
 kind: kubernetes
-application: potato-facts3
-# Map of Deployment Targets, this is set up in a way where 
+application: potato-facts
+# Map of Deployment Targets, this is set up in a way where
 # we can do multi-target deployments (multi-region or multi-cluster)
 targets:
-  # This in the name of a deployment, underneath it are its configuration
+  # This in the name of a deployment. Underneath it is its configuration.
   dev:
     # the name of an agent configured account
-    account: demo-dev-cluster #sa-eks-direct #saClusterViaHelm
+    account: demo-rna-dev-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-dev
+    namespace: demo-dev
     # This is the key to a strategy under the strategies map
     strategy: rolling
   staging:
     # the name of an agent configured account
-    account: demo-staging-cluster
+    account: demo-rna-staging-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-staging
-    # This is the key to a strategy under the strategies map
-    strategy: rolling
-    # This is a list of manifest names that should be included in this deployment
-    constraints:
-      dependsOn: ["dev"]
-      beforeDeployment: []
-  infosec:
-    # the name of an agent configured account
-    account: demo-staging-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: borealis-infosec
+    namespace: demo-staging
     # This is the key to a strategy under the strategies map
     strategy: rolling
     constraints:
       dependsOn: ["dev"]
       beforeDeployment: []
-  prod-west:
+  prod-us:
     # the name of an agent configured account
-    account: demo-prod-west-cluster
+    account: demo-rna-prod-us-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-prod
+    namespace: demo-prod-us
     # This is the key to a strategy under the strategies map
     strategy: mycanary
     constraints:
-      dependsOn: ["infosec","staging"]
+      dependsOn: ["staging"]
       beforeDeployment:
-      - pause:
-          untilApproved: true
-      - runWebhook:
-          name: myWebhookwcontext
-          context:
-            environment: production
+        - pause:
+            untilApproved: true
+        - runWebhook:
+            name: basicPing
   prod-eu:
     # the name of an agent configured account
-    account: demo-prod-eu-cluster
+    account: demo-rna-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: borealis-prod-eu
+    namespace: demo-prod-eu
     # This is the key to a strategy under the strategies map
     strategy: myBlueGreen
     constraints:
-      dependsOn: [ "infosec","staging" ]
+      dependsOn: ["staging"]
       beforeDeployment:
-        - pause:
-            untilApproved: true
+        - runWebhook:
+            name: basicPing
 # The list of manifests sources
 manifests:
-  # This will read all yaml|yml files in a dir and deploy all manifests in that directory to all targets.
+  # This reads all YAML files in a dir
+  # and deploys manifests in that dir to all targets.
   - path: manifests/potato-facts.yml
   - path: manifests/potato-facts-external-service.yml
-    targets: [ prod-eu]
+    targets: [prod-us, prod-eu]
 # The map of strategies, a deployment target will reference one of these
 strategies:
-  # this is the name for the strategy
+  # This is the name for the strategy
   mycanary:
-    # This map key, is the deployment strategy type
-    canary: 
-        # List of canary steps
-        steps:
-          # The map key is the step type
-
-          - setWeight:
-              weight: 25
-          - analysis:
-              interval: 7
-              units: seconds
-              numberOfJudgmentRuns: 1
-              rollBackMode: manual
-              rollForwardMode: automatic
-              queries:
+    # This map key is the deployment strategy type
+    canary:
+      steps:
+        # The map key is the step type
+        - setWeight:
+            weight: 25
+        - analysis:
+            interval: 7
+            units: seconds
+            numberOfJudgmentRuns: 1
+            rollBackMode: manual
+            rollForwardMode: automatic
+            queries:
               - avgCPUUsage-pass
-          - runWebhook:
-              name: myWebhook
-          #- pause:
-          #    untilApproved: true
-          - setWeight:
-              weight: 50
-          - analysis:
-              interval: 7
-              units: seconds
-              numberOfJudgmentRuns: 3
-              rollBackMode: manual
-              rollForwardMode: manual
-              queries: 
+        - runWebhook:
+            name: basicPing
+        - setWeight:
+            weight: 50
+        - analysis:
+            interval: 7
+            units: seconds
+            numberOfJudgmentRuns: 3
+            rollBackMode: manual
+            rollForwardMode: manual
+            queries:
               - avgCPUUsage-fail
               - avgCPUUsage-pass
-          - setWeight:
-              weight: 100
+        - setWeight:
+            weight: 100
   rolling:
     canary:
-      steps: 
-      - setWeight:
-          weight: 100
+      steps:
+        - setWeight:
+            weight: 100
   myBlueGreen:
     blueGreen:
       activeService: potato-facts-external
-#      previewService: potato-facts-preview
+      redirectTrafficAfter:
+        - analysis:
+            interval: 7
+            units: seconds
+            numberOfJudgmentRuns: 1
+            rollBackMode: manual
+            rollForwardMode: automatic
+            queries:
+              - avgCPUUsage-pass
       shutDownOldVersionAfter:
         - pause:
             untilApproved: true
-
 analysis:
-  defaultMetricProviderName: Stephen-Prometheus
+  defaultMetricProviderName: Demo-Prometheus
   queries:
     - name: avgCPUUsage-pass
-      upperLimit: 10000 #3
+      upperLimit: 10000
       lowerLimit: 0
       queryTemplate: >-
         avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
         sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
         by (annotation_app, pod)) by (annotation_app)
-      #,annotation_deploy_armory_io_replica_set_name="${canaryReplicaSetName}"})
-      #${ARMORY_REPLICA_SET_NAME}
-      #,annotation_deploy_armory_io_replica_set_name="${ARMORY_REPLICA_SET_NAME}"
-      #${replicaSetName}
-      #${applicationName}
-      # note the time should actually be set to ${promQlStepInterval}
     - name: invalidQuery
-      upperLimit: 10000 #3
+      upperLimit: 10000
       lowerLimit: 0
       queryTemplate: >-
         avg (avg_over_time(c
@@ -145,44 +131,23 @@ analysis:
         avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
         sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
         by (annotation_app, pod)) by (annotation_app)
-
-
-# armory deploy start -f deploy.yml
 webhooks:
-  - name: myWebhook
+  - name: basicPing
     method: POST
-    uriTemplate: https://api.github.com/repos/armory/docs-cdaas-demo/dispatches
+    uriTemplate: https://api.github.com/repos/{{secrets.github_org}}/{{secrets.github_repo}}/dispatches
     networkMode: direct
     headers:
       - key: Authorization
-        value: token  #{{secrets.github_token}} 
+        # The secret name must match the Borealis secret name for your GitHub access token
+        value: token  {{secrets.github_webhook_token}}
       - key: Content-Type
         value: application/json
     bodyTemplate:
-      inline:  >-
+      inline: >-
         {
-        "event_type": "webhookCallback",
+        "event_type": "basicPing",
         "client_payload": {
             "callbackUri": "{{armory.callbackUri}}/callback"
-            }
-        }
-    retryCount: 3
-  - name: myWebhookwcontext
-    method: POST
-    uriTemplate: https://api.github.com/repos/armory/docs-cdaas-demo/dispatches
-    networkMode: direct
-    headers:
-      - key: Authorization
-        value: token  #{{secrets.person_github_token}} 
-      - key: Content-Type
-        value: application/json
-    bodyTemplate:
-      inline:  >-
-        {
-        "event_type": "webhookCallback",
-        "client_payload": {
-            "callbackUri": "{{armory.callbackUri}}/callback",
-            "environment": "{{context.environment}}"
             }
         }
     retryCount: 3
