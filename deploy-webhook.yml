@@ -134,6 +134,7 @@ analysis:
 webhooks:
   - name: basicPing
     method: POST
+    # replace this with the URI for your repo if you don't create secrets
     uriTemplate: https://api.github.com/repos/{{secrets.github_org}}/{{secrets.github_repo}}/dispatches
     networkMode: direct
     headers:
