@@ -140,7 +140,7 @@ webhooks:
     headers:
       - key: Authorization
         # The secret name must match the Borealis secret name for your GitHub access token
-        value: token  {{secrets.github_webhook_token}}
+        value: token  {{secrets.github_webhook}}
       - key: Content-Type
         value: application/json
     bodyTemplate:
@@ -151,4 +151,4 @@ webhooks:
             "callbackUri": "{{armory.callbackUri}}/callback"
             }
         }
-    retryCount: 3
+    retryCount: 0
