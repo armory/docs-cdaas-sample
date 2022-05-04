@@ -139,7 +139,7 @@ webhooks:
     headers:
       - key: Authorization
         # The secret name must match the Borealis secret name for your GitHub access token
-        value: token  {{secrets.github_webhook_bad}}
+        value: token  {{secrets.github_webhook}}
       - key: Content-Type
         value: application/json
     bodyTemplate:
