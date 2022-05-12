@@ -1,4 +1,4 @@
 # docs-cdaas-demo
-borealis demo app for the docs and docs team
+Armory CDaaS demo app for the docs and docs team
 
-see the docs borealis section for the tutorial that uses this demo
+see the docs armory-cdaas section for the tutorial that uses this demo
