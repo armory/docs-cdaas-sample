@@ -1,4 +1,4 @@
 # docs-cdaas-demo
-borealis demo app for the docs and docs team
+Armory Continuous Depooyment-as-a-Service demo app for the Docs and Docs team
 
-see the docs borealis section for the tutorial that uses this demo
+See  https://docs.armory.io/cd-as-a-service/
