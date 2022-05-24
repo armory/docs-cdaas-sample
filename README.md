@@ -1,4 +1,4 @@
 # docs-cdaas-demo
-Armory CDaaS demo app for the docs and docs team
+Armory Continuous Depooyment-as-a-Service demo app for the Docs and Docs team
 
-see the docs armory-cdaas section for the tutorial that uses this demo
+See  https://docs.armory.io/cd-as-a-service/
