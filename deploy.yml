@@ -8,14 +8,14 @@ targets:
   # This in the name of a deployment. Underneath it is its configuration.
   dev:
     # the name of an agent configured account
-    account: demo-rna-dev-cluster
+    account: docs-demo-rna-credentials
     # Optionally override the namespaces that are in the manifests
     namespace: demo-dev
     # This is the key to a strategy under the strategies map
     strategy: rolling
   staging:
     # the name of an agent configured account
-    account: demo-rna-staging-cluster
+    account: docs-demo-rna-credentials
     # Optionally override the namespaces that are in the manifests
     namespace: demo-staging
     # This is the key to a strategy under the strategies map
@@ -25,7 +25,7 @@ targets:
       beforeDeployment: []
   prod-us:
     # the name of an agent configured account
-    account: demo-rna-prod-us-cluster
+    account: docs-demo-rna-credentials
     # Optionally override the namespaces that are in the manifests
     namespace: demo-prod-us
     # This is the key to a strategy under the strategies map
@@ -37,7 +37,7 @@ targets:
             untilApproved: true
   prod-eu:
     # the name of an agent configured account
-    account: demo-rna-prod-eu-cluster
+    account: docs-demo-rna-credentials
     # Optionally override the namespaces that are in the manifests
     namespace: demo-prod-eu
     # This is the key to a strategy under the strategies map
