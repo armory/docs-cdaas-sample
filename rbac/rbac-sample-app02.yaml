@@ -1,0 +1,26 @@
+---
+roles:
+  - name: SampleApp01DeployRole
+    # optional field, defaults to main
+    tenant: main
+    grants:
+      - type: targetGroup
+        resource: SampleApp01Deployment
+        permission: full
+      - type: api
+        resource: deployments
+        permission: read    
+
+targetGroups:
+  - name: SampleApp01Deployment
+    # optional field, defaults to main
+    tenant: main
+    targets:
+      - name: staging
+        account: world-domination-staging-cluster
+        kubernetes:
+          namespace: world-domination
+      - name: prod
+        account: world-domination-prod-east-cluster
+        kubernetes:
+          namespace: world-domination

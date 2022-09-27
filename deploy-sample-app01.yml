@@ -1,7 +1,7 @@
 ---
 version: v1
 kind: kubernetes
-application: potato-facts
+application: sample-app-01
 # Map of Deployment Targets, this is set up in a way where
 # we can do multi-target deployments (multi-region or multi-cluster)
 targets:
@@ -13,7 +13,7 @@ targets:
     namespace: demo-dev
     # This is the key to a strategy under the strategies map
     strategy: rolling
-  staging:
+  test:
     # the name of an agent configured account
     account: demo-rna-staging-cluster
     # Optionally override the namespaces that are in the manifests
@@ -23,7 +23,7 @@ targets:
     constraints:
       dependsOn: ["dev"]
       beforeDeployment: []
-  prod-us:
+  staging:
     # the name of an agent configured account
     account: demo-rna-prod-us-cluster
     # Optionally override the namespaces that are in the manifests
@@ -35,9 +35,7 @@ targets:
       beforeDeployment:
         - pause:
             untilApproved: true
-        - runWebhook:
-            name: basicPing
-  prod-eu:
+  prod:
     # the name of an agent configured account
     account: demo-rna-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
@@ -47,15 +45,13 @@ targets:
     constraints:
       dependsOn: ["staging"]
       beforeDeployment:
-        - runWebhook:
-            name: basicPing
+        - pause:
+            untilApproved: true
 # The list of manifests sources
 manifests:
   # This reads all YAML files in a dir
   # and deploys manifests in that dir to all targets.
-  - path: manifests/potato-facts.yml
-  - path: manifests/potato-facts-external-service.yml
-    targets: [prod-us, prod-eu]
+  - path: manifests/sample-app01.yml
 # The map of strategies, a deployment target will reference one of these
 strategies:
   # This is the name for the strategy
@@ -74,8 +70,6 @@ strategies:
             rollForwardMode: automatic
             queries:
               - avgCPUUsage-pass
-        - runWebhook:
-            name: basicPing
         - setWeight:
             weight: 50
         - analysis:
@@ -131,24 +125,3 @@ analysis:
         avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
         sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
         by (annotation_app, pod)) by (annotation_app)
-webhooks:
-  - name: basicPing
-    method: POST
-    # replace this with the URI for your repo if you don't create secrets
-    uriTemplate: https://api.github.com/repos/{{secrets.github_org}}/{{secrets.github_repo}}/dispatches
-    networkMode: direct
-    headers:
-      - key: Authorization
-        # The secret name must match the Borealis secret name for your GitHub access token
-        value: token  {{secrets.github_webhook}}
-      - key: Content-Type
-        value: application/json
-    bodyTemplate:
-      inline: >-
-        {
-        "event_type": "basicPing",
-        "client_payload": {
-            "callbackUri": "{{armory.callbackUri}}/callback"
-            }
-        }
-    retryCount: 0
