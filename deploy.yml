@@ -1,33 +1,33 @@
 ---
 version: v1
 kind: kubernetes
-application: potato-facts
+application: sample-app
 # Map of Deployment Targets, this is set up in a way where
 # we can do multi-target deployments (multi-region or multi-cluster)
 targets:
   # This in the name of a deployment. Underneath it is its configuration.
-  dev:
+  test:
     # the name of an agent configured account
-    account: demo-rna-dev-cluster
+    account: sample-rna-test-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: demo-dev
+    namespace: sample-test
     # This is the key to a strategy under the strategies map
     strategy: rolling
   staging:
     # the name of an agent configured account
-    account: demo-rna-staging-cluster
+    account: sample-rna-staging-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: demo-staging
+    namespace: sample-staging
     # This is the key to a strategy under the strategies map
     strategy: rolling
     constraints:
-      dependsOn: ["dev"]
+      dependsOn: ["test"]
       beforeDeployment: []
   prod-us:
     # the name of an agent configured account
-    account: demo-rna-prod-us-cluster
+    account: sample-rna-prod-us-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: demo-prod-us
+    namespace: sample-prod-us
     # This is the key to a strategy under the strategies map
     strategy: mycanary
     constraints:
@@ -37,9 +37,9 @@ targets:
             untilApproved: true
   prod-eu:
     # the name of an agent configured account
-    account: demo-rna-prod-eu-cluster
+    account: sample-rna-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: demo-prod-eu
+    namespace: sample-prod-eu
     # This is the key to a strategy under the strategies map
     strategy: myBlueGreen
     constraints:
@@ -51,9 +51,7 @@ targets:
 manifests:
   # This reads all YAML files in a dir
   # and deploys manifests in that dir to all targets.
-  - path: manifests/potato-facts.yml
-  - path: manifests/potato-facts-external-service.yml
-    targets: [prod-us, prod-eu]
+  - path: manifests/sample-app.yml
 # The map of strategies, a deployment target will reference one of these
 strategies:
   # This is the name for the strategy
@@ -90,40 +88,3 @@ strategies:
       steps:
         - setWeight:
             weight: 100
-  myBlueGreen:
-    blueGreen:
-      activeService: potato-facts-external
-      redirectTrafficAfter:
-        - analysis:
-            interval: 7
-            units: seconds
-            numberOfJudgmentRuns: 1
-            rollBackMode: manual
-            rollForwardMode: automatic
-            queries:
-              - avgCPUUsage-pass
-      shutDownOldVersionAfter:
-        - pause:
-            untilApproved: true
-analysis:
-  defaultMetricProviderName: Demo-Prometheus
-  queries:
-    - name: avgCPUUsage-pass
-      upperLimit: 10000
-      lowerLimit: 0
-      queryTemplate: >-
-        avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
-        sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
-        by (annotation_app, pod)) by (annotation_app)
-    - name: invalidQuery
-      upperLimit: 10000
-      lowerLimit: 0
-      queryTemplate: >-
-        avg (avg_over_time(c
-    - name: avgCPUUsage-fail
-      upperLimit: 1
-      lowerLimit: 0
-      queryTemplate: >-
-        avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
-        sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
-        by (annotation_app, pod)) by (annotation_app)
