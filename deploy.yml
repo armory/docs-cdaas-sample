@@ -1,20 +1,20 @@
 ---
 version: v1
 kind: kubernetes
-application: sample-app
+application: cdaas-sample-app
 # Map of Deployment Targets, this is set up in a way where
 # we can do multi-target deployments (multi-region or multi-cluster)
 targets:
   # This in the name of a deployment. Underneath it is its configuration.
   test:
-    # the name of an agent configured account
+    # the agentIdentifier of the Remote Network Agent for this target 
     account: sample-rna-test-cluster
     # Optionally override the namespaces that are in the manifests
     namespace: sample-test
     # This is the key to a strategy under the strategies map
     strategy: rolling
   staging:
-    # the name of an agent configured account
+     # the agentIdentifier of the Remote Network Agent for this target 
     account: sample-rna-staging-cluster
     # Optionally override the namespaces that are in the manifests
     namespace: sample-staging
@@ -24,7 +24,7 @@ targets:
       dependsOn: ["test"]
       beforeDeployment: []
   prod-us:
-    # the name of an agent configured account
+     # the agentIdentifier of the Remote Network Agent for this target 
     account: sample-rna-prod-us-cluster
     # Optionally override the namespaces that are in the manifests
     namespace: sample-prod-us
@@ -36,7 +36,7 @@ targets:
         - pause:
             untilApproved: true
   prod-eu:
-    # the name of an agent configured account
+     # the agentIdentifier of the Remote Network Agent for this target 
     account: sample-rna-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
     namespace: sample-prod-eu

@@ -4,7 +4,6 @@ metadata:
   name: cdaas-sample-app
   annotations: 
     "app": "cdaas-sample-app"
-    "prometheus.io/scrape": "true"
 spec:
   revisionHistoryLimit: 1
   replicas: 4
@@ -22,7 +21,6 @@ spec:
         app: cdaas-sample-app
       annotations: 
         "app": "cdaas-sample-app"
-        "prometheus.io/scrape": "true"
     spec:
       containers:
       - image:  demoimages/bluegreen:v3 #v5, v4, v3

@@ -10,12 +10,6 @@ kubectl create namespace sample-rna-prod-eu
 kubectl create namespace sample-rna-staging
 kubectl create namespace sample-rna-test
 
-# Create namespaces to mimic target deployment clusters
-kubectl create ns sample-test
-kubectl create ns sample-staging
-kubectl create ns sample-prod-us
-kubectl create ns sample-prod-eu
-
 # Create secrets in each Remote Network Agent namespace to the RNA can communicate with CD-as-a-Service
 kubectl -n=sample-rna-prod-us create secret generic rna-client-credentials --type=string --from-literal=client-secret=$2 --from-literal=client-id=$1
 kubectl -n=sample-rna-prod-eu create secret generic rna-client-credentials --type=string --from-literal=client-secret=$2 --from-literal=client-id=$1
@@ -25,7 +19,6 @@ kubectl -n=sample-rna-test create secret generic rna-client-credentials --type=s
 
 # Optionally Add Armory Chart repo, if you haven't
 helm repo add armory https://armory.jfrog.io/artifactory/charts
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 # Update repo to fetch latest armory charts
 helm repo update
 # Install or Upgrade armory rna chart
@@ -53,3 +46,9 @@ helm upgrade --install sample-rna-test armory/remote-network-agent \
     --set clientSecret='encrypted:k8s!n:rna-client-credentials!k:client-secret' \
     --set agentIdentifier=sample-rna-test-cluster \
     -n sample-rna-test
+
+# Create namespaces to mimic target deployment clusters
+kubectl create ns sample-test
+kubectl create ns sample-staging
+kubectl create ns sample-prod-us
+kubectl create ns sample-prod-eu
