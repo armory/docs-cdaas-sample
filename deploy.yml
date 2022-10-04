@@ -23,11 +23,11 @@ targets:
     constraints:
       dependsOn: ["test"]
       beforeDeployment: []
-  prod-us:
+  prod-eu:
      # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-prod-us-cluster
+    account: sample-rna-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: sample-prod-us
+    namespace: sample-prod-eu
     # This is the key to a strategy under the strategies map
     strategy: mycanary
     constraints:
@@ -35,13 +35,13 @@ targets:
       beforeDeployment:
         - pause:
             untilApproved: true
-  prod-eu:
-     # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-prod-eu-cluster
+  prod-us:
+    # the agentIdentifier of the Remote Network Agent for this target 
+    account: sample-rna-prod-us-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: sample-prod-eu
+    namespace: sample-prod-us
     # This is the key to a strategy under the strategies map
-    strategy: myBlueGreen
+    strategy: mycanary
     constraints:
       dependsOn: ["staging"]
       beforeDeployment:
@@ -54,35 +54,34 @@ manifests:
   - path: manifests/sample-app.yml
 # The map of strategies, a deployment target will reference one of these
 strategies:
-  # This is the name for the strategy
+  # this is the name for the strategy
   mycanary:
-    # This map key is the deployment strategy type
-    canary:
-      steps:
-        # The map key is the step type
-        - setWeight:
-            weight: 25
-        - analysis:
-            interval: 7
-            units: seconds
-            numberOfJudgmentRuns: 1
-            rollBackMode: manual
-            rollForwardMode: automatic
-            queries:
-              - avgCPUUsage-pass
-        - setWeight:
-            weight: 50
-        - analysis:
-            interval: 7
-            units: seconds
-            numberOfJudgmentRuns: 3
-            rollBackMode: manual
-            rollForwardMode: manual
-            queries:
-              - avgCPUUsage-fail
-              - avgCPUUsage-pass
-        - setWeight:
-            weight: 100
+    # This specifies the strategy type
+    canary: 
+        # List of canary steps
+        steps:
+          # there are multiple step types. setWeight changes what percentage of traffic reaches the new version.
+          - setWeight:
+              weight: 25
+          - pause:
+              untilApproved: true
+          - setWeight:
+              weight: 50
+          - setWeight:
+              weight: 100
+  mybluegreen:
+    # This specifies the deployment strategy type
+    blueGreen:
+      activeService: cdaas-sample-app-svc
+      # List of what needs to happen before redirecting traffic
+      redirectTrafficAfter:
+        - pause:
+            duration: 10
+            unit: seconds
+      # List of what needs to happen before shutting down the old version
+      shutDownOldVersionAfter:
+        - pause:
+            untilApproved: true
   rolling:
     canary:
       steps:
