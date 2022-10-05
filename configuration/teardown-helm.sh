@@ -8,6 +8,7 @@ helm uninstall sample-rna-prod-us  -n sample-rna-prod-us
 helm uninstall sample-rna-prod-eu -n sample-rna-prod-eu
 helm uninstall sample-rna-staging -n sample-rna-staging
 helm uninstall sample-rna-test -n sample-rna-test
+helm uninstall sample-prometheus -n sample-infra
 
 
 # Delete RNA namespaces
