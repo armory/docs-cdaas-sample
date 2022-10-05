@@ -1,11 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hostname
-  namespace: demo-app
+  name: cdaas-sample-app
   annotations: 
-    "app": "potato-facts"
-    "prometheus.io/scrape": "true"
+    "app": "cdaas-sample-app"
 spec:
   revisionHistoryLimit: 1
   replicas: 4
@@ -16,20 +14,18 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: potato-facts
+      app: cdaas-sample-app
   template:
     metadata:
       labels:
-        app: potato-facts
+        app: cdaas-sample-app
       annotations: 
-        "app": "potato-facts"
-        "prometheus.io/scrape": "true"
+        "app": "cdaas-sample-app"
     spec:
       containers:
-      - image:  armory/potato-facts:v1.7.0 #v1.5.1 #v1.6.0 # v1.7.0
+      - image:  demoimages/bluegreen:v3 #v5, v4, v3
         imagePullPolicy: Always
-        name: potato-facts
-        command: ["/bin/sh", "-c", "sleep 10 && timeout 5m cat /dev/zero > /dev/null"]
+        name: cdaas-sample-app
         resources:
           limits:
             cpu: "100m" # this is to ensure the above busy wait cannot DOS a low CPU cluster.
@@ -37,9 +33,39 @@ spec:
           requests:
             cpu: "10m" # this is to ensure the above busy wait cannot DOS a low CPU cluster.
             memory: "70Mi"
-        env:
-        - name: NEW_RELIC_AGENT_ENBALED
-          value: 'false'
         #ports:
         #  - containerPort: 8086
       restartPolicy: Always
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cdaas-sample-app-svc
+  labels:
+    app: cdaas-sample-app
+  annotations:
+    linkerd.io/inject: enabled
+spec:
+  selector:
+    app: cdaas-sample-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
