@@ -1,8 +1,8 @@
-name: Webhook Callback
+name: runIntegrationTests Webhook Callback
 
 on:
   repository_dispatch:
-    types: checkLogs
+    types: runIntegrationTests
 
 jobs:
   respond:
@@ -25,6 +25,6 @@ jobs:
           method: 'POST'
           bearerToken: ${{ fromJSON(steps.getToken.outputs.response).access_token }}
           customHeaders: '{ "Content-Type": "application/json" }'
-          data: '{ "success": true, "mdMessage": "Webhook successful: no errors found in logs" }'
+          data: '{ "success": true, "mdMessage": "runIntegrationTests webhook successful: no errors found in logs" }'
       - name: show http response
         run: echo ${{ steps.callCallback.outputs.response }}

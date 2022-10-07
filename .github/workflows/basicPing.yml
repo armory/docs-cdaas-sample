@@ -1,4 +1,4 @@
-name: Basic Ping Webhook Callback
+name: basicPing Webhook Callback
 
 on:
   repository_dispatch:
@@ -7,7 +7,7 @@ on:
 jobs:
   respond:
     name: Calls the callback being passed in
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: getToken
         id: getToken
@@ -25,6 +25,7 @@ jobs:
           method: 'POST'
           bearerToken: ${{ fromJSON(steps.getToken.outputs.response).access_token }}
           customHeaders: '{ "Content-Type": "application/json" }'
-          data: '{ "success": true, "mdMessage": "Webhook success: ${{ github.event.client_payload.callbackUri }}" }'
+          data: '{ "success": true, "mdMessage": "basicPing webhook success: ${{ github.event.client_payload.callbackUri }}" }'
       - name: show http response
         run: echo ${{ steps.callCallback.outputs.response }}
+

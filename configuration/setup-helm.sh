@@ -25,21 +25,12 @@ kubectl create ns sample-staging
 kubectl create ns sample-prod-eu
 kubectl create ns sample-prod-us
 
-# Create a namespace for infra software like Prometheus
-echo "Create a namespace for infra software"
-kubectl create ns sample-infra
-
 # Optionally Add Armory Chart and Prometheus repos
 echo "Add Helm charts"
 helm repo add armory https://armory.jfrog.io/artifactory/charts
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
 # Update repo to fetch latest armory charts
 helm repo update
-
-# Install Prometheus, which is used in the deployment canary strategy
-echo "Install Prometheus (Community Edition)"
-helm install sample-prometheus prometheus-community/kube-prometheus-stack -n=sample-infra --set "kube-state-metrics.metricAnnotationsAllowList[0]=pods=[*]" --set "global.scrape_interval=5s"
 
 # Install or Upgrade armory rna chart
 # helm upgrade [RELEASE] [CHART] [flags]
