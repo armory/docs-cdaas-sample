@@ -1,8 +1,8 @@
-name: Webhook Callback
+name: runSecurityScanners Webhook Callback
 
 on:
   repository_dispatch:
-    types: securityscan
+    types: runSecurityScanners
 
 jobs:
   respond:
@@ -25,6 +25,6 @@ jobs:
           method: 'POST'
           bearerToken: ${{ fromJSON(steps.getToken.outputs.response).access_token }}
           customHeaders: '{ "Content-Type": "application/json" }'
-          data: '{ "success": true, "mdMessage": "Webhook was successful: ${{ github.event.client_payload.callbackUri }}" }'
+          data: '{ "success": true, "mdMessage": "runSecurityScanners webhook was successful: ${{ github.event.client_payload.callbackUri }}" }'
       - name: show http response
         run: echo ${{ steps.callCallback.outputs.response }}

@@ -1,64 +1,56 @@
 ---
 version: v1
 kind: kubernetes
-application: potato-facts
+application: cdaas-sample-app
 # Map of Deployment Targets, this is set up in a way where
 # we can do multi-target deployments (multi-region or multi-cluster)
 targets:
   # This in the name of a deployment. Underneath it is its configuration.
-  dev:
-    # the name of an agent configured account
-    account: demo-rna-dev-cluster
+  test:
+    # the agentIdentifier of the Remote Network Agent for this target 
+    account: sample-rna-test-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: demo-dev
+    namespace: sample-test
     # This is the key to a strategy under the strategies map
     strategy: rolling
   staging:
-    # the name of an agent configured account
-    account: demo-rna-staging-cluster
+     # the agentIdentifier of the Remote Network Agent for this target 
+    account: sample-rna-staging-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: demo-staging
+    namespace: sample-staging
     # This is the key to a strategy under the strategies map
     strategy: rolling
     constraints:
-      dependsOn: ["dev"]
-      beforeDeployment: []
-  prod-us:
-    # the name of an agent configured account
-    account: demo-rna-prod-us-cluster
+      dependsOn: ["test"]
+      afterDeployment:
+        - runWebhook:
+            name: basicPing
+  prod-eu:
+     # the agentIdentifier of the Remote Network Agent for this target 
+    account: sample-rna-prod-eu-cluster
     # Optionally override the namespaces that are in the manifests
-    namespace: demo-prod-us
+    namespace: sample-prod-eu
+    # This is the key to a strategy under the strategies map
+    strategy: mybluegreen
+    constraints:
+      dependsOn: ["staging"]
+  prod-us:
+    # the agentIdentifier of the Remote Network Agent for this target 
+    account: sample-rna-prod-us-cluster
+    # Optionally override the namespaces that are in the manifests
+    namespace: sample-prod-us
     # This is the key to a strategy under the strategies map
     strategy: mycanary
     constraints:
       dependsOn: ["staging"]
-      beforeDeployment:
-        - pause:
-            untilApproved: true
-        - runWebhook:
-            name: basicPing
-  prod-eu:
-    # the name of an agent configured account
-    account: demo-rna-prod-eu-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: demo-prod-eu
-    # This is the key to a strategy under the strategies map
-    strategy: myBlueGreen
-    constraints:
-      dependsOn: ["staging"]
-      beforeDeployment:
-        - runWebhook:
-            name: basicPing
 # The list of manifests sources
 manifests:
   # This reads all YAML files in a dir
   # and deploys manifests in that dir to all targets.
-  - path: manifests/potato-facts.yml
-  - path: manifests/potato-facts-external-service.yml
-    targets: [prod-us, prod-eu]
+  - path: manifests/sample-app.yml
 # The map of strategies, a deployment target will reference one of these
 strategies:
-  # This is the name for the strategy
+  # this is the name for the strategy
   mycanary:
     # This map key is the deployment strategy type
     canary:
@@ -66,27 +58,14 @@ strategies:
         # The map key is the step type
         - setWeight:
             weight: 25
-        - analysis:
-            interval: 7
-            units: seconds
-            numberOfJudgmentRuns: 1
-            rollBackMode: manual
-            rollForwardMode: automatic
-            queries:
-              - avgCPUUsage-pass
-        - runWebhook:
-            name: basicPing
+        - pause:
+            duration: 10
+            unit: seconds
         - setWeight:
             weight: 50
-        - analysis:
-            interval: 7
-            units: seconds
-            numberOfJudgmentRuns: 3
-            rollBackMode: manual
-            rollForwardMode: manual
-            queries:
-              - avgCPUUsage-fail
-              - avgCPUUsage-pass
+        - pause:
+            duration: 10
+            unit: seconds
         - setWeight:
             weight: 100
   rolling:
@@ -94,53 +73,29 @@ strategies:
       steps:
         - setWeight:
             weight: 100
-  myBlueGreen:
+  mybluegreen:
+    # This specifies the deployment strategy type
     blueGreen:
-      activeService: potato-facts-external
+      activeService: cdaas-sample-app-svc
+      # List of what needs to happen before redirecting traffic
       redirectTrafficAfter:
-        - analysis:
-            interval: 7
-            units: seconds
-            numberOfJudgmentRuns: 1
-            rollBackMode: manual
-            rollForwardMode: automatic
-            queries:
-              - avgCPUUsage-pass
+        - pause:
+            duration: 10
+            unit: seconds
+      # List of what needs to happen before shutting down the old version
       shutDownOldVersionAfter:
         - pause:
-            untilApproved: true
-analysis:
-  defaultMetricProviderName: Demo-Prometheus
-  queries:
-    - name: avgCPUUsage-pass
-      upperLimit: 10000
-      lowerLimit: 0
-      queryTemplate: >-
-        avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
-        sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
-        by (annotation_app, pod)) by (annotation_app)
-    - name: invalidQuery
-      upperLimit: 10000
-      lowerLimit: 0
-      queryTemplate: >-
-        avg (avg_over_time(c
-    - name: avgCPUUsage-fail
-      upperLimit: 1
-      lowerLimit: 0
-      queryTemplate: >-
-        avg (avg_over_time(container_cpu_system_seconds_total{job="kubelet"}[{{armory.promQlStepInterval}}]) * on (pod)  group_left (annotation_app)
-        sum(kube_pod_annotations{job="kube-state-metrics",annotation_deploy_armory_io_replica_set_name="{{armory.replicaSetName}}"})
-        by (annotation_app, pod)) by (annotation_app)
+            duration: 15
+            unit: seconds
+
 webhooks:
   - name: basicPing
     method: POST
-    # replace this with the URI for your repo if you don't create secrets
     uriTemplate: https://api.github.com/repos/{{secrets.github_org}}/{{secrets.github_repo}}/dispatches
     networkMode: direct
     headers:
       - key: Authorization
-        # The secret name must match the Armory CDaaS secret name for your GitHub access token
-        value: token  {{secrets.github_webhook}}
+        value: token {{secrets.github_personal_access_token}}
       - key: Content-Type
         value: application/json
     bodyTemplate:
@@ -150,5 +105,5 @@ webhooks:
         "client_payload": {
             "callbackUri": "{{armory.callbackUri}}/callback"
             }
-        }
-    retryCount: 0
+         }
+    retryCount: 1
