@@ -22,9 +22,7 @@ targets:
     strategy: rolling
     constraints:
       dependsOn: ["test"]
-      afterDeployment:
-        - runWebhook:
-            name: basicPing
+      beforeDeployment: []
   prod-eu:
      # the agentIdentifier of the Remote Network Agent for this target 
     account: sample-rna-prod-eu-cluster
@@ -34,6 +32,9 @@ targets:
     strategy: mybluegreen
     constraints:
       dependsOn: ["staging"]
+      beforeDeployment:
+        - pause:
+            untilApproved: true
   prod-us:
     # the agentIdentifier of the Remote Network Agent for this target 
     account: sample-rna-prod-us-cluster
@@ -43,11 +44,14 @@ targets:
     strategy: mycanary
     constraints:
       dependsOn: ["staging"]
+      beforeDeployment:
+        - pause:
+            untilApproved: true
 # The list of manifests sources
 manifests:
   # This reads all YAML files in a dir
   # and deploys manifests in that dir to all targets.
-  - path: manifests/sample-app.yml
+  - path: manifests/prod-app.yml
 # The map of strategies, a deployment target will reference one of these
 strategies:
   # this is the name for the strategy
@@ -85,25 +89,5 @@ strategies:
       # List of what needs to happen before shutting down the old version
       shutDownOldVersionAfter:
         - pause:
-            duration: 15
+            duration: 20
             unit: seconds
-
-webhooks:
-  - name: basicPing
-    method: POST
-    uriTemplate: https://api.github.com/repos/{{secrets.github_org}}/{{secrets.github_repo}}/dispatches
-    networkMode: direct
-    headers:
-      - key: Authorization
-        value: token {{secrets.github_personal_access_token}}
-      - key: Content-Type
-        value: application/json
-    bodyTemplate:
-      inline: >-
-        {
-        "event_type": "basicPing",
-        "client_payload": {
-            "callbackUri": "{{armory.callbackUri}}/callback"
-            }
-         }
-    retryCount: 1

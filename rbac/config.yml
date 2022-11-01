@@ -1,0 +1,15 @@
+---
+allowAutoDelete: true
+roles:
+  - name: Tenant Admin
+    tenant: main
+    grants:
+      - type: api
+        resource: tenant
+        permission: full
+  - name: Deployer
+    tenant: main
+    grants:
+      - type: api
+        resource: deployment
+        permission: full

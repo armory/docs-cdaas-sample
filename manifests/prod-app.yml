@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cdaas-prod-app
+  annotations: 
+    "app": "cdaas-prod-app"
+spec:
+  revisionHistoryLimit: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: cdaas-prod-app
+  template:
+    metadata:
+      labels:
+        app: cdaas-prod-app
+      annotations: 
+        "app": "cdaas-prod-app"
+    spec:
+      containers:
+      - image:  demoimages/bluegreen:v3 #v5, v4, v3
+        imagePullPolicy: Always
+        name: cdaas-prod-app
+        resources:
+          limits:
+            cpu: "100m" # this is to ensure the above busy wait cannot DOS a low CPU cluster.
+            memory: "70Mi"
+          requests:
+            cpu: "10m" # this is to ensure the above busy wait cannot DOS a low CPU cluster.
+            memory: "70Mi"
+        #ports:
+        #  - containerPort: 8086
+      restartPolicy: Always
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cdaas-prod-app-svc
+  labels:
+    app: cdaas-prod-app
+  annotations:
+    linkerd.io/inject: enabled
+spec:
+  selector:
+    app: cdaas-prod-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+      protocol: TCP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

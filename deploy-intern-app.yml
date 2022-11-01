@@ -1,7 +1,7 @@
 ---
 version: v1
 kind: kubernetes
-application: cdaas-sample-app
+application: cdaas-sample-app-intern
 # Map of Deployment Targets, this is set up in a way where
 # we can do multi-target deployments (multi-region or multi-cluster)
 targets:
@@ -19,31 +19,9 @@ targets:
     # Optionally override the namespaces that are in the manifests
     namespace: sample-staging
     # This is the key to a strategy under the strategies map
-    strategy: rolling
-    constraints:
-      dependsOn: ["test"]
-      beforeDeployment: []
-  prod-eu:
-     # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-prod-eu-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: sample-prod-eu
-    # This is the key to a strategy under the strategies map
     strategy: mybluegreen
     constraints:
-      dependsOn: ["staging"]
-      beforeDeployment:
-        - pause:
-            untilApproved: true
-  prod-us:
-    # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-prod-us-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: sample-prod-us
-    # This is the key to a strategy under the strategies map
-    strategy: mycanary
-    constraints:
-      dependsOn: ["staging"]
+      dependsOn: ["test"]
       beforeDeployment:
         - pause:
             untilApproved: true
@@ -51,27 +29,10 @@ targets:
 manifests:
   # This reads all YAML files in a dir
   # and deploys manifests in that dir to all targets.
-  - path: manifests/sample-app.yml
-# The map of strategies, a deployment target will reference one of these
+  - path: manifests/intern-app.yml
+# The map of strategies; a deployment target references one of these
 strategies:
   # this is the name for the strategy
-  mycanary:
-    # This map key is the deployment strategy type
-    canary:
-      steps:
-        # The map key is the step type
-        - setWeight:
-            weight: 25
-        - pause:
-            duration: 10
-            unit: seconds
-        - setWeight:
-            weight: 50
-        - pause:
-            duration: 10
-            unit: seconds
-        - setWeight:
-            weight: 100
   rolling:
     canary:
       steps:
@@ -80,7 +41,7 @@ strategies:
   mybluegreen:
     # This specifies the deployment strategy type
     blueGreen:
-      activeService: cdaas-sample-app-svc
+      activeService: cdaas-sample-app-intern-svc
       # List of what needs to happen before redirecting traffic
       redirectTrafficAfter:
         - pause:
