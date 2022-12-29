@@ -1,0 +1,5 @@
+tenants:
+  - potato-facts-app
+  - sample-app
+  - sandbox
+
