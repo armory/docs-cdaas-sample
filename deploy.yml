@@ -1,93 +1,34 @@
 ---
+# deployment.yaml
 version: v1
 kind: kubernetes
-application: cdaas-sample-app
-# Map of Deployment Targets, this is set up in a way where
-# we can do multi-target deployments (multi-region or multi-cluster)
+application: reviews
 targets:
-  # This in the name of a deployment. Underneath it is its configuration.
-  test:
-    # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-test-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: sample-test
-    # This is the key to a strategy under the strategies map
-    strategy: rolling
-  staging:
-     # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-staging-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: sample-staging
-    # This is the key to a strategy under the strategies map
-    strategy: rolling
-    constraints:
-      dependsOn: ["test"]
-      beforeDeployment: []
-  prod-eu:
-     # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-prod-eu-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: sample-prod-eu
-    # This is the key to a strategy under the strategies map
-    strategy: mybluegreen
-    constraints:
-      dependsOn: ["staging"]
-      beforeDeployment:
-        - pause:
-            untilApproved: true
-  prod-us:
-    # the agentIdentifier of the Remote Network Agent for this target 
-    account: sample-rna-prod-us-cluster
-    # Optionally override the namespaces that are in the manifests
-    namespace: sample-prod-us
-    # This is the key to a strategy under the strategies map
-    strategy: mycanary
-    constraints:
-      dependsOn: ["staging"]
-      beforeDeployment:
-        - pause:
-            untilApproved: true
-# The list of manifests sources
+  dev:
+    account: aimeeu-local
+    namespace: istiodemo
+    strategy: strategy1
 manifests:
-  # This reads all YAML files in a dir
-  # and deploys manifests in that dir to all targets.
-  - path: manifests/sample-app.yml
-# The map of strategies, a deployment target will reference one of these
+  - path: manifests/reviews-v1.yaml
 strategies:
-  # this is the name for the strategy
-  mycanary:
-    # This map key is the deployment strategy type
-    canary:
-      steps:
-        # The map key is the step type
-        - setWeight:
-            weight: 25
-        - pause:
-            duration: 10
-            unit: seconds
-        - setWeight:
-            weight: 50
-        - pause:
-            duration: 10
-            unit: seconds
-        - setWeight:
-            weight: 100
-  rolling:
+  strategy1:
     canary:
       steps:
         - setWeight:
-            weight: 100
-  mybluegreen:
-    # This specifies the deployment strategy type
-    blueGreen:
-      activeService: cdaas-sample-app-svc
-      # List of what needs to happen before redirecting traffic
-      redirectTrafficAfter:
+            weight: 10
         - pause:
-            duration: 10
-            unit: seconds
-      # List of what needs to happen before shutting down the old version
-      shutDownOldVersionAfter:
+            untilApproved: true
+        - setWeight:
+            weight: 57
         - pause:
-            duration: 20
-            unit: seconds
+            untilApproved: true
+trafficManagement:
+  - targets: ["dev"]
+    istio:
+      - virtualService:
+          name: reviews-route # virtualService.metadata.name
+          httpRouteName: reviews-http-route # virtualService.http.route[].name abstraction
+        destinationRule: # OPTIONAL (if only one destination exists on the service) virtualService.http.route[].destination/destinationRule abstraction
+          name: reviews-destination #destinationRule.metadata.name
+          activeSubsetName: stable # OPTIONAL (if only 1 active subset on DR)- virtualService.http.route[].destinations[0].subset
+          canarySubsetName: canary
