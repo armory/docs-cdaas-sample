@@ -7,7 +7,7 @@ targets:
   my-local-cluster:
     # the name of an agent configured account. Agent Name can be found at https://console.cloud.armory.io/configuration > Agents
     account: aimeeu-local
-    namespace: armory-sample-app
+    namespace: cdaas-sample-app
     # This is the name of the strategy to use when deploying.
     strategy: mycanary
 # The list of manifests to deploy
