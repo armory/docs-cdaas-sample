@@ -1,0 +1,21 @@
+name: DeployAimeeLocalCluster
+
+on:
+  push: # What triggers a deployment. For example, `push`.
+    branches:
+      - aimeeLocalCluster # What branch triggers a deployment. For example, `main`.
+
+jobs:
+  build:
+    name: deploy from main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deployment
+        uses: armory/cli-deploy-action@main
+        with:
+          clientId: "${{ secrets.GHA_CLIENT_ID }}"
+          clientSecret: "${{ secrets.GHA_CLIENT_SECRET }}"
+          path-to-file: "/deploy-simple-app.yml"
