@@ -15,7 +15,7 @@ manifests:
   # This will read all yaml|yml files in a dir and deploy all manifests in that directory to all targets, or their specified target.
   - path: manifests/sample-namespace.yml
     targets: [my-local-cluster]
-  - path: manifests/demo-app.yml
+  - path: manifests/sample-app.yml
 # The map of strategies, a deployment target will reference one of these
 strategies:
   # this is the name for the strategy
@@ -28,12 +28,12 @@ strategies:
         - setWeight:
             weight: 25
         - pause:
-            duration: 30
+            duration: 15
             unit: seconds
         - setWeight:
             weight: 50
         - pause:
-            duration: 30
+            duration: 15
             unit: seconds
         - setWeight:
             weight: 100
