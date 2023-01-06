@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cdaas-sample-app
+  name: sample-app
   annotations: 
-    "app": "cdaas-sample-app"
+    "app": "sample-app"
 spec:
   revisionHistoryLimit: 1
   replicas: 2
@@ -14,18 +14,18 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: cdaas-sample-app
+      app: sample-app
   template:
     metadata:
       labels:
-        app: cdaas-sample-app
+        app: sample-app
       annotations: 
-        "app": "cdaas-sample-app"
+        "app": "sample-app"
     spec:
       containers:
       - image:  demoimages/bluegreen:v3 #v5, v4, v3
         imagePullPolicy: Always
-        name: cdaas-sample-app
+        name: sample-app
         resources:
           limits:
             cpu: "100m" # this is to ensure the above busy wait cannot DOS a low CPU cluster.
@@ -41,14 +41,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: cdaas-sample-app-svc
+  name: sample-app-svc
   labels:
-    app: cdaas-sample-app
+    app: sample-app
   annotations:
     linkerd.io/inject: enabled
 spec:
   selector:
-    app: cdaas-sample-app
+    app: sample-app
   ports:
     - name: http
       port: 80
