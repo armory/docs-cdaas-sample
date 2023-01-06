@@ -1,13 +1,13 @@
 version: v1
 kind: kubernetes
-application: sample-application
+application: sample-app
 # Map of Application Targets to which we are deploying
 targets:
   # This in the name of an application target, underneath it are its configuration
   my-local-cluster:
     # the name of an agent configured account. Agent Name can be found at https://console.cloud.armory.io/configuration > Agents
     account: aimeeu-local
-    namespace: armory-sample-application
+    namespace: armory-sample-app
     # This is the name of the strategy to use when deploying.
     strategy: mycanary
 # The list of manifests to deploy
