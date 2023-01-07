@@ -13,9 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Deployment
+      - name: Deploy to Armory CDaaS
         uses: armory/cli-deploy-action@main
         with:
           clientId: "${{ secrets.GHA_CLIENT_ID }}"
           clientSecret: "${{ secrets.GHA_CLIENT_SECRET }}"
           path-to-file: "/deploy-simple-app.yml"
+          waitForDeployment: false
+
+      - name: Print deploy output
+        id: output
+        run: echo 'deploy args ${{steps.deploy.outputs.LINK}}, ${{steps.deploy.outputs.DEPLOYMENT_ID}}'
