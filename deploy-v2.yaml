@@ -3,11 +3,11 @@ kind: kubernetes
 application: potato-facts
 targets:
   staging:
-    account: my-cdaas-cluster
+    account: sample-cluster
     namespace: potato-facts-staging
     strategy: rolling
   prod:
-    account: my-cdaas-cluster
+    account: sample-cluster
     namespace: potato-facts-prod
     strategy: blue-green-prod
     constraints:
