@@ -45,5 +45,4 @@ trafficManagement:
   - targets: ["staging", "prod"]
     kubernetes:
       - activeService: potato-facts-svc
-      - previewService: potato-facts-preview-svc
-
+        previewService: potato-facts-preview-svc
