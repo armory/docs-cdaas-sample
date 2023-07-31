@@ -39,10 +39,8 @@ strategies:
               unit: hours
       shutDownOldVersionAfter:
         - pause:
-            untilApproved: true
-            approvalExpiration:
-              duration: 2
-              unit: hours
+            duration: 90
+            unit: minutes
 trafficManagement:
   - targets: ["staging", "prod"]
     kubernetes:
