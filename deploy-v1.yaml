@@ -26,5 +26,6 @@ strategies:
         - setWeight:
             weight: 100
 trafficManagement:
-  kubernetes:
-    - activeService: potato-facts-svc
+  - targets: ["staging", "prod"]
+    kubernetes:
+      - activeService: potato-facts-svc
