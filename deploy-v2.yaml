@@ -35,11 +35,17 @@ strategies:
         - pause:
             untilApproved: true
             approvalExpiration:
-              duration: 2
-              unit: hours
+              duration: 10
+              unit: minutes
+        - exposeServices:
+            services:
+              - potato-facts-preview-svc
+            ttl:
+              duration: 10
+              unit: minutes
       shutDownOldVersionAfter:
         - pause:
-            duration: 90
+            duration: 15
             unit: minutes
 trafficManagement:
   - targets: ["staging", "prod"]
