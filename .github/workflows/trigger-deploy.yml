@@ -5,6 +5,11 @@ on:
     branches:
       - aimeeLocalCluster # What branch triggers a deployment. For example, `main`.
 
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: read
+  
 jobs:
   build:
     name: deploy from main
@@ -14,8 +19,16 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Deployment
+        id: deploy
+        env:
+          GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
         uses: armory/cli-deploy-action@main
         with:
           clientId: "${{ secrets.GHA_CLIENT_ID }}"
           clientSecret: "${{ secrets.GHA_CLIENT_SECRET }}"
           path-to-file: "/deploy-simple-app.yml"
+          waitForDeployment: true
+
+      - name: Print deploy output
+        id: output
+        run: echo -e 'DeploymentID ${{steps.deploy.outputs.DEPLOYMENT_ID}}\nLink ${{steps.deploy.outputs.LINK}}\n${{steps.deploy.outputs.RUN_RESULT}}'    
