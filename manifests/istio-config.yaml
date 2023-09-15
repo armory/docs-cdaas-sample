@@ -1,0 +1,103 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: reviews-route
+spec:
+  hosts:
+    - reviews.istiodemo.svc.cluster.local
+  http:
+    - route:
+        - destination:
+            host: reviews.istiodemo.svc.cluster.local
+            subset: stable
+      name: reviews-http-route
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: reviews-destination
+spec:
+  host: reviews.istiodemo.svc.cluster.local
+  subsets:
+    - name: stable
+      labels:
+        app: reviews
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: productpage-route
+spec:
+  hosts:
+    - productpage.istiodemo.svc.cluster.local
+  http:
+    - route:
+        - destination:
+            host: productpage.istiodemo.svc.cluster.local
+            subset: v1
+      name: productpage-http-route
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: productpage-destination
+spec:
+  host: productpage
+  subsets:
+    - name: v1
+      labels:
+        app: productpage
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ratings-route
+spec:
+  hosts:
+    - ratings.istiodemo.svc.cluster.local
+  http:
+    - route:
+        - destination:
+            host: ratings.istiodemo.svc.cluster.local
+            subset: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: ratings-destination
+spec:
+  host: ratings.istiodemo.svc.cluster.local
+  subsets:
+    - name: v1
+      labels:
+        app: ratings
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: details-route
+spec:
+  hosts:
+    - details.istiodemo.svc.cluster.local
+  http:
+    - route:
+        - destination:
+            host: details.istiodemo.svc.cluster.local
+            subset: v1
+      name: details-http-route
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: details-destination
+spec:
+  host: details.istiodemo.svc.cluster.local
+  subsets:
+    - name: v1
+      labels:
+        app: details
+        version: v1
+---
+
