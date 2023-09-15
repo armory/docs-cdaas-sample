@@ -3,7 +3,7 @@ name: DeployAimeeLocalCluster
 on:
   push: # What triggers a deployment. For example, `push`.
     branches:
-      - aimeeLocalCluster # What branch triggers a deployment. For example, `main`.
+      - main                                                                                                                                                                                                                                                                                                                                                                                                                   # What branch triggers a deployment. For example, `main`.
 
 permissions:
   contents: read
